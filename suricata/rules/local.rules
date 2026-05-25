@@ -1,0 +1,31 @@
+# escaner puertos alertar
+alert tcp $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[SCAN] SYN Scan detectado"; flags:S,12; threshold:type threshold, track by_src, count 20, seconds 60; classtype:attempted-recon; sid:3000001; rev:1;)
+alert tcp $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[SCAN] XMAS Scan detectado"; flags:FPU; classtype:attempted-recon; sid:3000002; rev:1;)
+alert tcp $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[SCAN] NULL Scan detectado"; flags:0; classtype:attempted-recon; sid:3000003; rev:1;)
+alert tcp $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[SCAN] FIN Scan detectado"; flags:F; classtype:attempted-recon; sid:3000004; rev:1;)
+
+# sql injection bloquear
+drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[SQLi] OR 1=1 BLOQUEADO"; flow:to_server,established; content:"OR"; nocase; content:"1"; distance:0; within:5; content:"="; distance:0; within:3; content:"1"; distance:0; within:3; classtype:web-application-attack; sid:3000010; rev:1;)
+drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[SQLi] UNION SELECT BLOQUEADO"; flow:to_server,established; content:"UNION"; nocase; content:"SELECT"; nocase; distance:0; within:20; classtype:web-application-attack; sid:3000011; rev:1;)
+drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[TOOL] SQLMap BLOQUEADO"; flow:to_server,established; content:"sqlmap"; http_user_agent; nocase; classtype:web-application-attack; sid:3000013; rev:1;)
+
+# path traversal bloquear
+drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[LFI] Path Traversal BLOQUEADO"; flow:to_server,established; content:".."; http_uri; content:"/"; distance:0; within:2; classtype:web-application-attack; sid:3000020; rev:1;)
+drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[LFI] Acceso a /etc/passwd BLOQUEADO"; flow:to_server,established; content:"/etc/passwd"; http_uri; nocase; classtype:web-application-attack; sid:3000021; rev:1;)
+drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[LFI] Acceso a /etc/shadow BLOQUEADO"; flow:to_server,established; content:"/etc/shadow"; http_uri; nocase; classtype:web-application-attack; sid:3000022; rev:1;)
+
+# herramientas de ataque bloquear
+drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[TOOL] Nikto Scanner BLOQUEADO"; flow:to_server,established; content:"Nikto"; http_user_agent; classtype:web-application-attack; sid:3000030; rev:1;)
+drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[TOOL] DirBuster BLOQUEADO"; flow:to_server,established; content:"DirBuster"; http_user_agent; classtype:web-application-attack; sid:3000031; rev:1;)
+drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[TOOL] Gobuster BLOQUEADO"; flow:to_server,established; content:"gobuster"; http_user_agent; nocase; classtype:web-application-attack; sid:3000032; rev:1;)
+
+# command injection bloquear
+drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[CMDi] Pipe command BLOQUEADO"; flow:to_server,established; content:"|"; http_client_body; classtype:web-application-attack; sid:3000040; rev:1;)
+drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[CMDi] Backtick command BLOQUEADO"; flow:to_server,established; content:"`"; http_client_body; classtype:web-application-attack; sid:3000041; rev:1;)
+
+# xss alertar
+alert http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[XSS] Tag script detectado"; flow:to_server,established; content:"<script"; nocase; classtype:web-application-attack; sid:3000050; rev:1;)
+alert http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[XSS] Event handler detectado"; flow:to_server,established; content:"onerror"; nocase; classtype:web-application-attack; sid:3000051; rev:1;)
+
+# fuerza bruta alertar
+alert http $KALI_ATTACKER any -> $DVWA_SERVER 80 (msg:"[BRUTE] Múltiples intentos de login detectados"; flow:to_server,established; content:"POST"; http_method; content:"login"; http_uri; threshold:type threshold, track by_src, count 5, seconds 60; classtype:attempted-admin; sid:3000060; rev:1;)

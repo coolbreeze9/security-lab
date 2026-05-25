@@ -38,7 +38,7 @@ outputs:
       interval: 60
 
 af-packet:
-  - interface: br-039bbf624c5e
+  - interface: 
     threads: 1
     cluster-id: 99
     cluster-type: cluster_flow

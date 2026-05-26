@@ -18,7 +18,7 @@ if [ -z "$IFACE" ]; then
 fi
 
 echo "[4] Configurando Suricata: $IFACE"
-sed -i "s/- interface: br-.*/- interface: $IFACE/" ~/security-lab/suricata/config/suricata.yaml
+sed -i 's|~/security-lab|$(cd "$(dirname "${BASH_SOURCE[0]}")" \&\& pwd)|g' ~/security-lab/start-lab.sh
 
 echo "[5] Reiniciando Suricata"
 docker compose restart suricata-ips

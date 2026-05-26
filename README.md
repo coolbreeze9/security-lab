@@ -41,3 +41,84 @@ bash arranque.sh
 ### 5. Verificar Kibana
 
 - Abrir http://localhost:5601
+
+## Comandos útiles
+
+### Gestión del laboratorio
+
+```bash
+# Levantar el laboratorio
+bash arranque.sh
+
+# Ver estado de los contenedores
+docker compose ps
+
+# Ver logs en tiempo real
+docker compose logs -f
+
+# Apagar el laboratorio
+docker compose down
+
+# Apagar y eliminar todo
+docker compose down && docker system prune -a --volumes -f
+```
+
+### Acceder a los contenedores
+
+```bash
+# Acceder a Kali (atacante)
+docker exec -it kali-attacker bash
+
+# Acceder a Suricata
+docker exec -it suricata-ips bash
+```
+
+### Ataques disponibles
+
+```bash
+# Desde el contenedor Kali
+docker exec -it kali-attacker bash
+
+# Escaneo de red
+nmap -sS -T4 172.20.0.30
+
+# SQL Injection
+curl "http://172.20.0.30/vulnerabilities/sqli/?id=1'+OR+'1'='1&Submit=Submit" \
+     -H "Cookie: PHPSESSID=test; security=low"
+
+# SQLMap
+sqlmap -u "http://172.20.0.30/vulnerabilities/sqli/?id=1&Submit=Submit" \
+       --cookie="PHPSESSID=test; security=low" --batch
+
+# Path Traversal
+curl "http://172.20.0.30/vulnerabilities/fi/?page=../../../etc/passwd" \
+     -H "Cookie: PHPSESSID=test; security=low"
+
+# XSS
+curl "http://172.20.0.30/vulnerabilities/xss_r/?name=<script>alert(1)</script>" \
+     -H "Cookie: PHPSESSID=test; security=low"
+```
+
+### Monitorización
+
+```bash
+# Ver alertas de Suricata en tiempo real
+docker exec suricata-ips tail -f /var/log/suricata/fast.log
+
+# Ver todos los eventos en eve.json
+docker exec suricata-ips tail -f /var/log/suricata/eve.json
+
+# Verificar estado de Elasticsearch
+curl http://localhost:9200/_cluster/health | jq
+
+# Ver índices creados
+curl http://localhost:9200/_cat/indices?v | grep suricata
+```
+
+### Accesos web
+
+| Servicio      | URL                        | Credenciales       |
+|---------------|----------------------------|--------------------|
+| DVWA          | http://localhost:8080      | admin / password   |
+| Kibana        | http://localhost:5601      | —                  |
+| Elasticsearch | http://localhost:9200      | —                  |

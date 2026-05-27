@@ -3,46 +3,45 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.20.0.0/24
           gateway: 172.20.0.1
 
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
-  # elastic
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     container_name: elasticsearch
     environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
-      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
     ulimits:
       memlock:
         soft: -1
         hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
     volumes:
       - ./elasticsearch/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
     networks:
       security-lab:
         ipv4_address: 172.20.0.40
-    ports:
-      - "9200:9200"
     healthcheck:
-      test: ["CMD", "curl", "-s", "http://localhost:9200/_cluster/health"]
-      interval: 30s
+      test: ["CMD", "curl", "-sf", "http://localhost:9200/_cluster/health?wait_for_status=yellow"]
+      interval: 15s
       timeout: 10s
-      retries: 5
+      retries: 10
       start_period: 60s
+    restart: unless-stopped
+    logging: *default-logging
 
-  # logstash
   logstash:
     image: docker.elastic.co/logstash/logstash:8.11.0
     container_name: logstash
     environment:
-      - "LS_JAVA_OPTS=-Xms512m -Xmx512m"
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
     volumes:
       - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
@@ -53,8 +52,9 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
+    restart: unless-stopped
+    logging: *default-logging
 
-  # kibana
   kibana:
     image: docker.elastic.co/kibana/kibana:8.11.0
     container_name: kibana
@@ -69,13 +69,14 @@ services:
       elasticsearch:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-s", "http://localhost:5601/api/status"]
-      interval: 30s
+      test: ["CMD", "curl", "-sf", "http://localhost:5601/api/status"]
+      interval: 15s
       timeout: 10s
-      retries: 5
+      retries: 10
       start_period: 90s
+    restart: unless-stopped
+    logging: *default-logging
 
-  # suricata
   suricata-ips:
     build: ./suricata
     container_name: suricata-ips
@@ -89,8 +90,8 @@ services:
       - ./suricata/rules:/var/lib/suricata/rules:ro
       - ./suricata/logs:/var/log/suricata
     restart: unless-stopped
+    logging: *default-logging
 
-  # dvwa
   dvwa-victim:
     image: vulnerables/web-dvwa:latest
     container_name: dvwa-victim
@@ -99,9 +100,15 @@ services:
         ipv4_address: 172.20.0.30
     ports:
       - "8080:80"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:80"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
+    logging: *default-logging
 
-  # kali
   kali-attacker:
     build: ./kali
     container_name: kali-attacker
@@ -116,6 +123,9 @@ services:
     tty: true
     stdin_open: true
     depends_on:
-      - dvwa-victim
-      - suricata-ips
+      dvwa-victim:
+        condition: service_healthy
+      suricata-ips:
+        condition: service_started
     restart: unless-stopped
+    logging: *default-logging

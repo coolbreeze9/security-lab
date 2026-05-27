@@ -1,6 +1,6 @@
-FROM kalilinux/kali-rolling
+FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends --fix-missing \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     nmap \
     masscan \
     tcpdump \

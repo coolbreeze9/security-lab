@@ -1,7 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Directorio del script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
@@ -40,14 +39,20 @@ done
 IFACE=$(ip link show | grep -o 'br-[a-f0-9]*' | head -1)
 echo "[5] Interfaz detectada: $IFACE"
 
-# Configurar Suricata
+# Configurar Suricata solo si ha cambiado la interfaz
 YAML="$SCRIPT_DIR/suricata/config/suricata.yaml"
 [ -f "$YAML" ] || { echo "ERROR: No se encuentra $YAML"; exit 1; }
-sed -i "s/- interface: br-.*/- interface: $IFACE/" "$YAML"
+CURRENT_IFACE=$(grep '- interface:' "$YAML" | grep -o 'br-[a-f0-9]*' || true)
+if [ "$CURRENT_IFACE" != "$IFACE" ]; then
+  sed -i "s/- interface: br-.*/- interface: $IFACE/" "$YAML"
+  echo "[5] Suricata actualizado con interfaz $IFACE"
+else
+  echo "[5] Suricata ya tiene la interfaz correcta"
+fi
 
 # Esperar Elasticsearch
 echo "[6] Esperando Elasticsearch"
-TIMEOUT=60
+TIMEOUT=120
 ELAPSED=0
 until docker exec elasticsearch curl -s http://localhost:9200 >/dev/null 2>&1; do
   sleep 2
@@ -58,6 +63,14 @@ done
 # Reiniciar Suricata
 echo "[7] Reiniciando Suricata"
 docker compose restart suricata-ips >/dev/null
+
+# Verificar que todos los contenedores están en ejecución
+echo "[8] Verificando contenedores"
+FAILED=$(docker compose ps --status exited --format "{{.Name}}" 2>/dev/null || true)
+if [ -n "$FAILED" ]; then
+  echo "ERROR: Los siguientes contenedores han fallado: $FAILED"
+  exit 1
+fi
 
 echo ""
 echo "Laboratorio listo"

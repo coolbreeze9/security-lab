@@ -2,7 +2,7 @@
 ---
 vars:
   address-groups:
-    HOME_NET: "[172.20.0.0/16]"
+    HOME_NET: "[172.20.0.0/24]"
     EXTERNAL_NET: "!$HOME_NET"
     DVWA_SERVER: "172.20.0.30"
     KALI_ATTACKER: "172.20.0.10"
@@ -11,7 +11,6 @@ vars:
     HTTPS_PORTS: "443"
 
 default-rule-path: /var/lib/suricata/rules
-
 rule-files:
   - local.rules
 
@@ -32,13 +31,8 @@ outputs:
       filename: fast.log
       append: yes
 
-  - stats:
-      enabled: yes
-      filename: stats.log
-      interval: 60
-
 af-packet:
-  - interface: 
+  - interface: br-18b350fe8bfd
     threads: 1
     cluster-id: 99
     cluster-type: cluster_flow

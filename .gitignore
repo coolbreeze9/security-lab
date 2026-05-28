@@ -1,0 +1,4 @@
+elasticsearch/data/
+suricata/logs/
+*.log
+*.json

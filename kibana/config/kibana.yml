@@ -3,3 +3,4 @@ server.port: 5601
 server.name: "security-lab-kibana"
 elasticsearch.hosts: ["http://elasticsearch:9200"]
 telemetry.enabled: false
+logging.root.level: warn

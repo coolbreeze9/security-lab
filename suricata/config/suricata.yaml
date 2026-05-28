@@ -56,3 +56,5 @@ logging:
         enabled: yes
         filename: suricata.log
         level: info
+stats:
+  enabled: no

@@ -1,7 +1,7 @@
 # ─── ESCANEO DE PUERTOS ───────────────────────────────────────────────────────
 alert tcp $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[SCAN] SYN Scan detectado"; flags:S,12; threshold:type threshold, track by_src, count 20, seconds 60; classtype:attempted-recon; sid:3000001; rev:2;)
 alert tcp $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[SCAN] XMAS Scan detectado"; flags:FPU; classtype:attempted-recon; sid:3000002; rev:2;)
-alert tcp $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[SCAN] NULL Scan detectado"; flags:0; classtype:attempted-recon; sid:3000003; rev:2;)
+alert tcp $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[SCAN] NULL Scan detectado"; flags:0; classtype:attempted-recon; sid:3000003; rev:3;)
 alert tcp $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[SCAN] FIN Scan detectado"; flags:F; classtype:attempted-recon; sid:3000004; rev:2;)
 
 # ─── SQL INJECTION ────────────────────────────────────────────────────────────
@@ -20,7 +20,7 @@ drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[TOOL] DirBuster BLOQUEAD
 drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[TOOL] Gobuster BLOQUEADO"; flow:to_server,established; content:"gobuster"; http_user_agent; nocase; classtype:web-application-attack; sid:3000032; rev:2;)
 
 # ─── COMMAND INJECTION ───────────────────────────────────────────────────────
-drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[CMDi] Pipe command BLOQUEADO"; flow:to_server,established; content:"|"; http_client_body; nocase; classtype:web-application-attack; sid:3000040; rev:2;)
+drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[CMDi] Pipe command BLOQUEADO"; flow:to_server,established; content:"%7C"; http_uri; nocase; classtype:web-application-attack; sid:3000040; rev:3;)
 drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[CMDi] Backtick command BLOQUEADO"; flow:to_server,established; content:"`"; http_client_body; classtype:web-application-attack; sid:3000041; rev:2;)
 drop http $KALI_ATTACKER any -> $DVWA_SERVER any (msg:"[CMDi] Semicolon command BLOQUEADO"; flow:to_server,established; content:"%3B"; http_uri; nocase; classtype:web-application-attack; sid:3000042; rev:1;)
 

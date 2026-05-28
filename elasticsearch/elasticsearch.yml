@@ -3,4 +3,3 @@ node.name: es-node-1
 discovery.type: single-node
 xpack.security.enabled: false
 bootstrap.memory_lock: true
-index.number_of_replicas: 0

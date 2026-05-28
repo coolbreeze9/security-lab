@@ -32,7 +32,7 @@ outputs:
       append: yes
 
 af-packet:
-  - interface: br-18b350fe8bfd
+  - interface: br-ff4e4ffef8f8
     threads: 1
     cluster-id: 99
     cluster-type: cluster_flow

@@ -82,6 +82,22 @@ El script `start-lab.sh` realiza automáticamente:
     Clic en Create / Reset Database
     DVWA Security > Low
 
+### Configurar Kibana
+
+    Abrir http://localhost:5601
+
+Ejecutar el script de configuración:
+
+    ~/security-lab/kibana/setup-kibana.sh
+
+Abrir el dashboard:
+
+    http://localhost:5601/app/dashboards → Suricata IDS/IPS Dashboard
+
+Para ver alertas individuales:
+
+    Analytics > Discover → seleccionar índice suricata-*
+
 ## Accesos
 
 | Servicio      | URL                   | Credenciales     |
@@ -106,7 +122,7 @@ Ejecutar los scripts:
 
     docker exec suricata-ips tail -f /var/log/suricata/fast.log
     docker exec suricata-ips tail -f /var/log/suricata/eve.json
-    curl http://localhost:9200/_cat/indices?v | grep suricata
+    docker exec elasticsearch curl -s http://localhost:9200/_cat/indices?v | grep suricata
 
 ## Gestión del laboratorio
 

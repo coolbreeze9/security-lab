@@ -3,7 +3,7 @@ set -euo pipefail
 
 TARGET="172.20.0.30"
 
-echo "=== ESCANEO DE RED: $TARGET ==="
+echo "=== ESCANEO DE RED: $TARGET =="
 echo "fecha: $(date)"
 echo ""
 

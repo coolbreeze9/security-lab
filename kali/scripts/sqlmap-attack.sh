@@ -4,7 +4,7 @@ set -euo pipefail
 TARGET="http://172.20.0.30"
 COOKIE="PHPSESSID=test; security=low"
 
-echo "=== SQLMAP - BLOQUEADO POR SURICATA ==="
+echo "=== SQLMAP - BLOQUEADO POR SURICATA =="
 echo ""
 
 ping -c 1 "172.20.0.30" >/dev/null 2>&1 || { echo "ERROR: objetivo no responde"; exit 1; }

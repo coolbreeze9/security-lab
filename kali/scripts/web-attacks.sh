@@ -13,7 +13,7 @@ resultado() {
   fi
 }
 
-echo "=== ATAQUES WEB CONTRA DVWA ==="
+echo "=== ATAQUES WEB CONTRA DVWA =="
 echo ""
 
 echo "[1] SQLi OR 1=1 - bloqueado por suricata"

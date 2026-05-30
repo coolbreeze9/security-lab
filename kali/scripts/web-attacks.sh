@@ -1,41 +1,74 @@
 #!/bin/bash
+set -euo pipefail
+
 TARGET="http://172.20.0.30"
 COOKIE="PHPSESSID=test; security=low"
 
-echo "ataques web contra dvwa"
+resultado() {
+  local output="$1"
+  if [ -z "$output" ]; then
+    echo "BLOQUEADO por Suricata"
+  else
+    echo "DETECTADO - respuesta recibida"
+  fi
+}
+
+echo "=== ATAQUES WEB CONTRA DVWA ==="
 echo ""
 
-echo "[1] sql injection OR 1=1 bloqueado por suricata"
-curl -s "$TARGET/vulnerabilities/sqli/?id=1'+OR+1%3D1&Submit=Submit" \
-     -H "Cookie: $COOKIE" | head -5
+echo "[1] SQLi OR 1=1 - bloqueado por suricata"
+OUT=$(curl -s "$TARGET/vulnerabilities/sqli/?id=1'+OR+1%3D1&Submit=Submit" \
+     -H "Cookie: $COOKIE" || true)
+resultado "$OUT"
 echo ""
 
-echo "[2] sql injection union select bloqueado"
-curl -s "$TARGET/vulnerabilities/sqli/?id=1'+UNION+SELECT+1,2--&Submit=Submit" \
-     -H "Cookie: $COOKIE" | head -5
+echo "[2] SQLi UNION SELECT - bloqueado por suricata"
+OUT=$(curl -s "$TARGET/vulnerabilities/sqli/?id=1'+UNION+SELECT+1,2--&Submit=Submit" \
+     -H "Cookie: $COOKIE" || true)
+resultado "$OUT"
 echo ""
 
-echo "[3] path traversal bloqueado"
-curl -s "$TARGET/vulnerabilities/fi/?page=../../../etc/passwd" \
-     -H "Cookie: $COOKIE" | head -5
+echo "[3] LFI Path Traversal - bloqueado por suricata"
+OUT=$(curl -s "$TARGET/vulnerabilities/fi/?page=../../../etc/passwd" \
+     -H "Cookie: $COOKIE" || true)
+resultado "$OUT"
 echo ""
 
-echo "[4] xss reflejado detectado"
-curl -s "$TARGET/vulnerabilities/xss_r/?name=<script>alert('XSS')</script>" \
-     -H "Cookie: $COOKIE" | head -5
+echo "[4] LFI /etc/passwd - bloqueado por suricata"
+OUT=$(curl -s "$TARGET/vulnerabilities/fi/?page=/etc/passwd" \
+     -H "Cookie: $COOKIE" || true)
+resultado "$OUT"
 echo ""
 
-echo "[5] command injection bloqueado"
-curl -s -X POST "$TARGET/vulnerabilities/exec/" \
-     -H "Cookie: $COOKIE" \
-     -d "ip=127.0.0.1|id&Submit=Submit" | head -5
+echo "[5] XSS reflejado - detectado por suricata"
+OUT=$(curl -s "$TARGET/vulnerabilities/xss_r/?name=<script>alert('XSS')</script>" \
+     -H "Cookie: $COOKIE" || true)
+resultado "$OUT"
 echo ""
 
-echo "[6] fuerza bruta detectada por suricata"
+echo "[6] CMDi Pipe - bloqueado por suricata"
+OUT=$(curl -s -G "$TARGET/vulnerabilities/exec/" \
+     --data-urlencode "ip=127.0.0.1|id" \
+     -d "Submit=Submit" \
+     -H "Cookie: $COOKIE" || true)
+resultado "$OUT"
+echo ""
+
+echo "[7] CMDi Semicolon - bloqueado por suricata"
+OUT=$(curl -s -G "$TARGET/vulnerabilities/exec/" \
+     --data-urlencode "ip=127.0.0.1;id" \
+     -d "Submit=Submit" \
+     -H "Cookie: $COOKIE" || true)
+resultado "$OUT"
+echo ""
+
+echo "[8] Fuerza bruta login - detectado por suricata"
 for i in {1..6}; do
   curl -s -X POST "$TARGET/login.php" \
-       -d "username=admin&password=test$i&Login=Login" | head -1
+       -d "username=admin&password=test$i&Login=Login" \
+       -H "Cookie: $COOKIE" >/dev/null || true
+  echo "intento $i enviado"
 done
 echo ""
 
-echo "ataques completados"
+echo "=== ATAQUES COMPLETADOS ==="

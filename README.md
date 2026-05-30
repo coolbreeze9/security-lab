@@ -33,15 +33,12 @@ Verificar que WSL2 está activo:
 
     wsl -l -v
 
-Debe mostrar VERSION 2 junto a Ubuntu-22.04.
+Debe mostrar `VERSION 2` junto a Ubuntu-22.04.
 
 ### 3. Configurar Ubuntu
 
     sudo apt update && sudo apt upgrade -y
     sudo apt install -y curl git jq net-tools
-
-Hacer permanente el parámetro de memoria para Elasticsearch:
-
     echo 'vm.max_map_count=262144' | sudo tee -a /etc/sysctl.conf
     sudo sysctl -p
 
@@ -53,9 +50,6 @@ Hacer permanente el parámetro de memoria para Elasticsearch:
     sudo apt update
     sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     sudo service docker start
-
-Verificar que Docker funciona:
-
     docker run hello-world
 
 ### 5. Crear usuario del laboratorio
@@ -75,8 +69,8 @@ Cerrar y reabrir el terminal, luego cambiar al usuario:
     chmod +x start-lab.sh kali/scripts/*.sh
     ./start-lab.sh
 
-El script start-lab.sh realiza automáticamente:
-- Ajuste de vm.max_map_count para Elasticsearch
+El script `start-lab.sh` realiza automáticamente:
+- Ajuste de `vm.max_map_count` para Elasticsearch
 - Permisos del volumen de datos
 - Detección de la interfaz bridge de Docker
 - Espera activa hasta que todos los servicios estén listos
@@ -96,33 +90,31 @@ El script start-lab.sh realiza automáticamente:
 | Kibana        | http://localhost:5601 | -                |
 | Elasticsearch | http://localhost:9200 | -                |
 
-## Comandos útiles
+## Ejecución de ataques
 
-### Gestión del laboratorio
+Acceder al contenedor atacante:
+
+    docker exec -it kali-attacker bash
+
+Ejecutar los scripts:
+
+    /pentest/scripts/scan-target.sh    # Escaneos de puertos: SYN, XMAS, NULL, FIN
+    /pentest/scripts/web-attacks.sh    # SQLi, LFI, XSS, CMDi, fuerza bruta
+    /pentest/scripts/sqlmap-attack.sh  # Ataque automatizado con SQLMap
+
+## Monitorización de alertas
+
+    docker exec suricata-ips tail -f /var/log/suricata/fast.log
+    docker exec suricata-ips tail -f /var/log/suricata/eve.json
+    curl http://localhost:9200/_cat/indices?v | grep suricata
+
+## Gestión del laboratorio
 
     ./start-lab.sh                                             # Iniciar
     docker compose ps                                          # Estado
     docker compose logs -f                                     # Logs
     docker compose down                                        # Apagar
     docker compose down && docker system prune -a --volumes -f # Apagar y limpiar todo
-
-### Acceso a contenedores
-
-    docker exec -it kali-attacker bash   # Contenedor atacante
-    docker exec -it suricata-ips bash    # Contenedor Suricata
-
-### Scripts de ataque
-Desde dentro del contenedor kali-attacker:
-
-    /pentest/scripts/scan-target.sh    # Escaneos de puertos (SYN, XMAS, NULL, FIN)
-    /pentest/scripts/web-attacks.sh    # SQLi, LFI, XSS, CMDi, fuerza bruta
-    /pentest/scripts/sqlmap-attack.sh  # Ataque automatizado con SQLMap
-
-### Monitorización de alertas
-
-    docker exec suricata-ips tail -f /var/log/suricata/fast.log
-    docker exec suricata-ips tail -f /var/log/suricata/eve.json
-    curl http://localhost:9200/_cat/indices?v | grep suricata
 
 ## Arquitectura
 
